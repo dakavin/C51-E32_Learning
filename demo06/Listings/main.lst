@@ -1,0 +1,69 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              01/14/2025 00:08:12 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: E:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          #include <stdio.h>
+   3          
+   4          sbit led = P2^7;
+   5          
+   6          void UartInit(){
+   7   1        SCON = 0x50; // uart模式选择  REN = 1; 允许uart接收数据
+   8   1        TMOD &= 0x0F; // 清除定时器1的设置
+   9   1        TMOD |= 0x20; // 定时器选择模式3
+  10   1        TR1 = 1;  // 打开定时器
+  11   1        TL1 = 0xFD; // 定时器自动装填
+  12   1        TH1 = 0xFD; // 定时器自动装填
+  13   1        PCON |= 0x0; // 设置SMOD为0
+  14   1        ES = 1;
+  15   1        EA = 1;
+  16   1      }
+  17          
+  18          void GetMsg() interrupt 4{
+  19   1        char recv;
+  20   1        if(RI==1){
+  21   2          RI = 0;
+  22   2          recv = SBUF;
+  23   2          if(SBUF == 'O'){
+  24   3            led = 0;
+  25   3          }else if(SBUF == 'C'){
+  26   3            led = 1;
+  27   3          }
+  28   2        }
+  29   1      }
+  30          
+  31          char putchar(char dat){
+  32   1        SBUF = dat;
+  33   1        while(!TI);
+  34   1        TI=0;
+  35   1        return dat;
+  36   1      }
+  37          
+  38          void main(){
+  39   1        UartInit();
+  40   1        printf("Input O for open the led\r\nInput C for close the led!");
+  41   1        while(1);
+  42   1      }
+  43          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     77    ----
+   CONSTANT SIZE    =     53    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+C51 COMPILER V9.60.0.0   MAIN                                                              01/14/2025 00:08:12 PAGE 2   
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

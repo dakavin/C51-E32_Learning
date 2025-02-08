@@ -1,0 +1,43 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              01/02/2025 04:34:40 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: E:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          
+   3          sbit led1= P2^7;         
+   4          sbit key1 = P3^7;
+   5          sbit touch = P4^3;
+*** ERROR C202 IN LINE 5 OF main.c: 'P4': undefined identifier
+   6          
+   7          void delay_ms(unsigned int xms)   //@12MHz
+   8          {
+   9   1          unsigned int i, j;
+  10   1          for(i=xms;i>0;i--)
+  11   1          {
+  12   2              for(j=124;j>0;j--)
+  13   2              {}
+  14   2          }
+  15   1      }
+  16          
+  17          void main()
+  18          {
+  19   1          delay_ms(10);
+  20   1          while(1)
+  21   1          {
+  22   2              //?????????
+  23   2              if(touch == 0)
+*** ERROR C202 IN LINE 23 OF main.c: 'touch': undefined identifier
+  24   2              {
+  25   3                  led1= ~led1;
+  26   3                  delay_ms(1000);
+  27   3              }
+  28   2          }                
+  29   1      }
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  2 ERROR(S)

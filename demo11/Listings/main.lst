@@ -1,0 +1,149 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              01/16/2025 01:24:33 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: E:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          
+   3          sbit sda = P0^1;
+   4          sbit scl = P0^2;
+   5          
+   6          void Delay10us()    //@11.0592MHz
+   7          {
+   8   1        unsigned char i;
+   9   1        i = 2;
+  10   1        while (--i);
+  11   1      }
+  12          
+  13          
+  14          void i2c_up(){
+  15   1        scl = 1;
+  16   1        sda = 1;
+  17   1        Delay10us();
+  18   1        sda = 0;
+  19   1        Delay10us();
+  20   1      }
+  21          
+  22          void i2c_down(){
+  23   1        scl = 1;
+  24   1        sda = 0;
+  25   1        Delay10us();
+  26   1        sda = 1;
+  27   1        Delay10us();
+  28   1      }
+  29          
+  30          void i2c_write_bit(unsigned char databit){
+  31   1        scl = 0;
+  32   1        if(databit == 0){
+  33   2          sda = 0;
+  34   2        }else{
+  35   2          sda = 1;
+  36   2        }
+  37   1        Delay10us();
+  38   1        scl = 1;
+  39   1        Delay10us();
+  40   1      }
+  41          
+  42          void i2c_write_byte(unsigned char datasend){
+  43   1        unsigned char i = 0;
+  44   1        for(i = 0;i<8;i++){
+  45   2          if(datasend & 0x80){
+  46   3            i2c_write_bit(1);
+  47   3          }else{
+  48   3            i2c_write_bit(0);
+  49   3          }
+  50   2          datasend = datasend << 1;
+  51   2        }
+  52   1      }
+  53          
+  54          unsigned char i2c_read_bit(){
+C51 COMPILER V9.60.0.0   MAIN                                                              01/16/2025 01:24:33 PAGE 2   
+
+  55   1        unsigned char databit = 0;
+  56   1        scl = 0;
+  57   1        Delay10us();
+  58   1        scl = 1;
+  59   1        Delay10us();
+  60   1        if(sda){
+  61   2          databit = 1;
+  62   2        }else{
+  63   2          databit = 0;
+  64   2        }
+  65   1        return databit;
+  66   1      }
+  67          
+  68          unsigned char i2c_read_byte(){
+  69   1        unsigned char value = 0;
+  70   1        unsigned char i = 0;
+  71   1        sda = 1;
+  72   1        for(i = 0;i<8;i++){
+  73   2          if(i2c_read_bit()){
+  74   3            value = value | 0x01;
+  75   3          }
+  76   2          if(i<7){
+  77   3            value = value << 1;
+  78   3          }
+  79   2        }
+  80   1        scl = 0;
+  81   1        Delay10us();
+  82   1        return value;
+  83   1      }
+  84          
+  85          void i2c_ack(){
+  86   1        scl = 0;
+  87   1        sda = 0;
+  88   1        Delay10us();
+  89   1        scl = 1;
+  90   1        Delay10us();
+  91   1        scl = 0;
+  92   1      }
+  93          
+  94          unsigned char i2c_wait_ack(){
+  95   1        unsigned char time = 0;
+  96   1        scl = 0;
+  97   1        sda = 1;
+  98   1        Delay10us();
+  99   1        scl = 1;
+ 100   1        Delay10us();
+ 101   1        while(sda){
+ 102   2          Delay10us();
+ 103   2          time++;
+ 104   2          if(time > 100){
+ 105   3            return 1;
+ 106   3          }
+ 107   2        }
+ 108   1        scl = 0;
+ 109   1        return 0;
+ 110   1      }
+ 111          
+ 112          
+ 113          void main(){
+ 114   1        i2c_up();
+ 115   1        i2c_write_byte(0x55);
+ 116   1        i2c_wait_ack();
+C51 COMPILER V9.60.0.0   MAIN                                                              01/16/2025 01:24:33 PAGE 3   
+
+ 117   1        i2c_down();
+ 118   1        while(1){
+ 119   2        
+ 120   2        }
+ 121   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    215    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

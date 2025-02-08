@@ -1,0 +1,78 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              01/14/2025 01:36:53 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: E:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          
+   3          #define TIMS (65536 -922)
+   4          
+   5          sbit dc_an1 = P2^4;
+   6          sbit dc_an2 = P2^3;
+   7          
+   8          unsigned char count , compare;
+   9          
+  10          
+  11          void delay_ms(unsigned int xms)   //@12MHz
+  12          {
+  13   1          unsigned int i, j;
+  14   1          for(i=xms;i>0;i--)
+  15   1          {
+  16   2              for(j=124;j>0;j--)
+  17   2              {}
+  18   2          }
+  19   1      }
+  20          
+  21          void main(){
+  22   1        TMOD = 0x1;
+  23   1        TH0 = TIMS >> 8;
+  24   1        TL0 = TIMS;
+  25   1        ET0 = 1;
+  26   1        EA = 1;
+  27   1        TR0 = 1;
+  28   1        dc_an1 = 0;
+  29   1        dc_an2 = 0;
+  30   1        while(1){
+  31   2          compare=1;
+  32   2          delay_ms(5000);
+  33   2          compare=3;
+  34   2          delay_ms(5000);
+  35   2          compare=9;
+  36   2          delay_ms(5000);
+  37   2          compare=18;
+  38   2          delay_ms(5000);
+  39   2        }
+  40   1      }
+  41          
+  42          void Timer0() interrupt 1{
+  43   1        TH0 = TIMS >> 8;
+  44   1        TL0 = TIMS;
+  45   1        count++;
+  46   1        count%=100;
+  47   1        if(count<compare){
+  48   2          dc_an2 = 1;
+  49   2        }else{
+  50   2          dc_an1 = 0;
+  51   2        }
+  52   1      }
+
+
+C51 COMPILER V9.60.0.0   MAIN                                                              01/14/2025 01:36:53 PAGE 2   
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    122    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,89 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              01/02/2025 05:19:26 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: E:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          
+   3          sfr P4    = 0xe8;                   //for 89C5xRC/RD+ series and 90C5xRc/RD+, location at 0E8H
+   4          //sfr P4   = 0xc0;                  //for 90C5xAD series, location at 0C0H
+   5          sbit INT2 = P4^3;
+   6          sbit INT3 = P4^2;
+   7          
+   8          sfr XICON = 0xc0;                   //for 89C5xRC/RD+ series and 90C5xRc/RD+, location at 0C0H
+   9          //sfr XICON = 0xe8;                 //for 90C5xAD series, location at 0E8H
+  10          sbit PX3  = XICON^7;
+  11          sbit EX3  = XICON^6;
+  12          sbit IE3  = XICON^5;
+  13          sbit IT3  = XICON^4;
+  14          sbit PX2  = XICON^3;
+  15          sbit EX2  = XICON^2;
+  16          sbit IE2  = XICON^1;
+  17          sbit IT2  = XICON^0;
+  18          
+  19          sbit key = P4^3;
+  20          
+  21          void delay_ms(unsigned int xms)   //@12MHz
+  22          {
+  23   1          unsigned int i, j;
+  24   1          for(i=xms;i>0;i--)
+  25   1          {
+  26   2              for(j=124;j>0;j--)
+  27   2              {}
+  28   2          }
+  29   1      }
+  30          
+  31          void open_led(unsigned int num){
+  32   1        P2 = 0xFF & ~(1<<num);
+  33   1      }
+  34          
+  35          void led_loop(){
+  36   1          open_led(7);
+  37   1          delay_ms(500);
+  38   1          open_led(6);
+  39   1          delay_ms(500);
+  40   1          open_led(5);
+  41   1          delay_ms(500);
+  42   1      }
+  43          
+  44          void close_led(){
+  45   1        P2 = 0xFF;
+  46   1      }
+  47          
+  48          void main(){
+  49   1        unsigned char flag = 0;
+  50   1        while(1){
+  51   2          if(key == 0){
+  52   3            delay_ms(10);
+  53   3            flag = !flag;
+  54   3            delay_ms(1000);
+C51 COMPILER V9.60.0.0   MAIN                                                              01/02/2025 05:19:26 PAGE 2   
+
+  55   3          }
+  56   2          
+  57   2          if(flag == 1){
+  58   3            led_loop();
+  59   3          }else{
+  60   3            close_led();
+  61   3          }
+  62   2        }
+  63   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    125    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
