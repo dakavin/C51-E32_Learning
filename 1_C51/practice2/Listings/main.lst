@@ -1,0 +1,153 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              02/09/2025 23:30:54 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: E:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          
+   3          sfr P4 = 0xe8;                   //for 89C5xRC/RD+ series and 90C5xRc/RD+, location at 0E8H
+   4          //sfr P4   = 0xc0;                  //for 90C5xAD series, location at 0C0H
+   5          sbit INT2 = P4 ^ 3;
+   6          sbit INT3 = P4 ^ 2;
+   7          
+   8          sfr XICON = 0xc0;                   //for 89C5xRC/RD+ series and 90C5xRc/RD+, location at 0C0H
+   9          //sfr XICON = 0xe8;                 //for 90C5xAD series, location at 0E8H
+  10          sbit PX3 = XICON ^ 7;
+  11          sbit EX3 = XICON ^ 6;
+  12          sbit IE3 = XICON ^ 5;
+  13          sbit IT3 = XICON ^ 4;
+  14          sbit PX2 = XICON ^ 3;
+  15          sbit EX2 = XICON ^ 2;
+  16          sbit IE2 = XICON ^ 1;
+  17          sbit IT2 = XICON ^ 0;
+  18          
+  19          // 触摸按键的管脚，也是外部中断INT2的管脚，可以在中断监控管脚变化情况
+  20          sbit key = P4 ^ 3;
+  21          //10ms定时器
+  22          TIMS = 65536 - 9216;
+  23          // 用于计数
+  24          static unsigned int count = 0;
+  25          // 用于监控数码管状态 0~计数状态 1~暂停状态
+  26          static unsigned int state = 0;
+  27          // 数码管控制管脚
+  28          sbit ds_pin = P0^3;
+  29          sbit stcp_pin = P0^4;
+  30          sbit shcp_pin = P0^5;
+  31          
+  32          // 共阴极数码管数组：0~9
+  33          unsigned char num[]={0x3F,0x06,0x5B,0x4F,0x66,0x6D,0x7D,0x07,0x7F,0x6F};
+  34          
+  35          //操控数码管相关函数
+  36          void hc595_send_byte(unsigned char byte){
+  37   1          unsigned int i;
+  38   1          for (i = 0; i < 8; ++i) {
+  39   2              if(byte & 0x80)
+  40   2                  ds_pin = 1;
+  41   2              else
+  42   2                  ds_pin = 0;
+  43   2              shcp_pin = 0;
+  44   2              shcp_pin = 1;
+  45   2              byte <<= 1;
+  46   2          }
+  47   1      }
+  48          
+  49          void hc595_send_data(unsigned char num,unsigned char addr){
+  50   1          hc595_send_byte(num);
+  51   1          if(addr == 0){
+  52   2              hc595_send_byte(0xFE);
+  53   2          }else if(addr == 1){
+  54   2              hc595_send_byte(0xFD);
+C51 COMPILER V9.60.0.0   MAIN                                                              02/09/2025 23:30:54 PAGE 2   
+
+  55   2          }
+  56   1          stcp_pin = 0;
+  57   1          stcp_pin = 1;
+  58   1      }
+  59          
+  60          void delay_ms(unsigned int xms) { //@12MHz
+  61   1          unsigned int i, j;
+  62   1          for (i = xms; i > 0; i--) {
+  63   2              for (j = 124; j > 0; j--) {}
+  64   2          }
+  65   1      }
+  66          
+  67          // 配置定时器0（使用定时器中断）
+  68          void initTimer0() {
+  69   1          // 选择模式2（自动装载） GATE=0，CT=0（选择系统时钟），M1=1，M0=0 0b0000 0010
+  70   1          TMOD = 0x01;
+  71   1          // 手动转载值，后续还需要重新装载
+  72   1          TH0 = TIMS >> 8;
+  73   1          TL0 = TIMS;
+  74   1          // 开关控制
+  75   1          TR0 = 1;
+  76   1          //允许中断
+  77   1          ET0 = 1;
+  78   1      }
+  79          
+  80          // 定时器中断代码，用于执行1s切换一下数码管数据
+  81          // 此时是10ms触发一次，所以需要*100，数码管最大值为99，那么count最大为9900
+  82          // 数码管范围 0000~9900
+  83          // 需要操控count的值变化即可
+  84          void Timer0() interrupt 1{
+  85   1          if(count<9900){
+  86   2              count++;
+  87   2          }
+  88   1          TH0 = TIMS >> 8;
+  89   1          TL0 = TIMS;
+  90   1      }
+  91          
+  92          //配置外部中断2
+  93          void initInt2(){
+  94   1          IT2 = 1; // 设置外部中断2的触发条件为下降沿
+  95   1          EX2 = 1;
+  96   1      }
+  97          
+  98          // 使用外部中断INT2来控制状态变化
+  99          void exit2() interrupt 6{
+ 100   1          if(key == 0){
+ 101   2              if(state == 0){ //计数状态 ---> 暂停状态
+ 102   3                  TR0 = 0;
+ 103   3              }else{
+ 104   3                  count = 0;
+ 105   3                  TR0 = 1;
+ 106   3                  TH0 = TIMS >> 8;
+ 107   3                  TL0 = TIMS;
+ 108   3              }
+ 109   2          }
+ 110   1          // 改变状态量
+ 111   1          state = ~state;
+ 112   1          delay_ms(10);
+ 113   1      }
+ 114          
+ 115          void main() {
+ 116   1          initTimer0();
+C51 COMPILER V9.60.0.0   MAIN                                                              02/09/2025 23:30:54 PAGE 3   
+
+ 117   1          initInt2();
+ 118   1          EA = 1;
+ 119   1          while(1){
+ 120   2              // 显示十位
+ 121   2              hc595_send_data(num[(count/100)/10],0);
+ 122   2              // 显示个位
+ 123   2              hc595_send_data(num[(count/100)%10],1);
+ 124   2          }
+ 125   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    294    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     16    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
